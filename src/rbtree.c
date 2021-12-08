@@ -191,9 +191,81 @@ node_t *rbtree_max(const rbtree *t) {
   return t->root;
 }
 
-int rbtree_erase(rbtree *t, node_t *p) {
+int rbtree_erase(rbtree *t, node_t *z) {
   // TODO: implement erase
+  node_t *y = z;
+  node_t *x = y;
+  color_t *y_original_color = y->color;
+  if (z->left == t->nil) {
+    x = z->right;
+    _transplant(t, z, z->right);
+  }
+
+  else if (z->right == t->nil) {
+    x = z->left;
+    _transplant(t, z, z->left);
+  }
+
+  else {
+    y = tree_minimum(t, z);
+    y_original_color = y->color;
+    x = y->right;
+    if (y->parent == z) {
+      x->parent = y;
+    }
+    else {
+      _transplant(t, y, y->right);
+      y->right = z->right;
+      y->right->parent = y;
+    }
+    _transplant(t, z, y);
+    y->left = z->left;
+    y->left->parent = y;
+    y->color = z->color;
+  }
+
+  if (y_original_color == RBTREE_BLACK) {
+    _delete_fixup(t, x);
+  }
+
   return 0;
+}
+
+node_t *tree_minimum(rbtree *t, node_t *z) {
+  node_t *p = z->right;
+  node_t *parent = z;
+  int min = z->key+1;
+  while (p!= t->nil){
+    parent = p;
+    if (p->key > min) {
+      p = p->left;
+    }
+    else if (p->key == min) {
+      return p;
+    }
+  }
+  return parent;
+}
+
+void _transplant(rbtree *t, node_t *u, node_t *v){
+  if (u->parent == t->nil) { // u가 루트 노드면
+    t->root = v; // t->root 는 v
+  }
+  else if (u == u->parent->left) { // u가 왼쪽 자식 노드이면
+    u->parent->left = v; // v를 왼쪽 자식으로 붙여
+  }
+  else {
+    u->parent->right = v; // v->오른쪽
+  }
+  v->parent = u->parent; // u를 v 자리로 이동
+}
+
+void _delete_fixup(rbtree *t, node_t *x){
+  while (x != t->root && x->color == RBTREE_BLACK) {
+    if (x == x->parent->left) {
+      
+    }
+  }
 }
 
 int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
